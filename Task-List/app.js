@@ -7,34 +7,83 @@ const taskInput = document.querySelector('#task');
 loadEventListeners();
 
 function loadEventListeners() {
+    document.addEventListener('DOMContentLoaded',getTasks);
     taskForm.addEventListener('submit',addItem);
     taskList.addEventListener('click',removeItem);
     clearButton.addEventListener('click',clearTaskList);
     filter.addEventListener('keyup',showTaskItem);
 }
 
+function getTasks() {
+    if(localStorage.getItem('tasks') === null) {
+        tasks = [];
+    } else {
+        tasks = JSON.parse(localStorage.getItem('tasks'));
+    }
+    tasks.forEach(function(task) {
+        createLiElement(task);
+    })
+
+}
+
 function addItem(e) {
     if(taskInput.value === '') {
         alert('Add a task');
     }
+    createLiElement(taskInput.value);
+    storeInLocalStorage(taskInput.value);
+    taskInput.value = '';
+    e.preventDefault();
+}
+
+function createLiElement(task) {
     const liElement = document.createElement('li');
     liElement.className = 'collection-item';
-    liElement.appendChild(document.createTextNode(taskInput.value));
+    liElement.appendChild(document.createTextNode(task));
     const linkElement = document.createElement('a');
     linkElement.className = 'delete-item secondary-content';
     linkElement.innerHTML='<i class="fa fa-remove"/>Remove';
     liElement.appendChild(linkElement);
     taskList.appendChild(liElement);
-    taskInput.value = '';
-    e.preventDefault();
+    
+}
+
+function storeInLocalStorage(task) {
+    let tasks ;
+    if(localStorage.getItem('tasks') === null) {
+        tasks = [];
+    } else {
+        tasks = JSON.parse(localStorage.getItem('tasks'));
+    }
+    tasks.push(task);
+    localStorage.setItem('tasks',JSON.stringify(tasks));
 }
 
 function removeItem(e) {
     if(e.target.parentElement.classList.contains('delete-item')) {
         if(confirm('Are you sure to delete?')) {
             e.target.parentElement.parentElement.remove();
+            removeTaskItemFromLocalStorage(e.target.parentElement.parentElement);
         }
     }
+}
+
+function removeTaskItemFromLocalStorage(taskItem) {
+    console.log(taskItem);
+    let tasks;
+    if(localStorage.getItem('tasks') === null) {
+        tasks = [];
+    } else {
+        tasks = JSON.parse(localStorage.getItem('tasks'));
+    }
+    
+    tasks.forEach(function(task,index) {
+        if(taskItem.firstChild.textContent === task) {
+            tasks.splice(index ,1);
+        }
+    })
+
+    localStorage.setItem('tasks',JSON.stringify(tasks));
 }
 
 function clearTaskList() {
@@ -42,6 +91,7 @@ function clearTaskList() {
     while(taskList.firstChild) {
         taskList.removeChild(taskList.firstChild);
     }
+    localStorage.clear();
     // taskList.innerHTML='';
 }
 
